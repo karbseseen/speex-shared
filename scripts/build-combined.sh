@@ -31,6 +31,18 @@ if [ ! -x speex/configure ]; then
   (cd speex && ./autogen.sh)
 fi
 if [ ! -x speexdsp/configure ]; then
+  # Autoconf 2.73 treats the same-line closing token in this legacy list as
+  # an additional AC_CONFIG_FILES entry.
+  awk '{
+    if ($0 ~ /ti\/speex_C64_test\/Makefile \]\)/) {
+      sub(/ \]\)$/, "")
+      print
+      print "])"
+    } else {
+      print
+    }
+  }' speexdsp/configure.ac > speexdsp/configure.ac.tmp
+  mv speexdsp/configure.ac.tmp speexdsp/configure.ac
   (cd speexdsp && ./autogen.sh)
 fi
 
