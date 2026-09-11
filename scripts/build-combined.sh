@@ -31,6 +31,8 @@ if [ ! -x speex/configure ]; then
   (cd speex && ./autogen.sh)
 fi
 if [ ! -x speexdsp/configure ]; then
+  mkdir -p speexdsp/m4
+  cp speex/m4/pkg.m4 speexdsp/m4/pkg.m4
   # Autoconf 2.73 treats the same-line closing token in this legacy list as
   # an additional AC_CONFIG_FILES entry.
   awk '{
