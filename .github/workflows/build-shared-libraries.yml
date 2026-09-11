@@ -1,0 +1,66 @@
+name: Build combined shared libraries
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+
+    steps:
+      - name: Check out repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            autoconf automake libtool make gcc
+
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew install autoconf automake libtool
+          brew link --force libtool
+
+      - name: Set up MinGW environment
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            autoconf
+            automake
+            libtool
+            make
+            mingw-w64-x86_64-gcc
+
+      - name: Build combined library (Unix)
+        if: runner.os != 'Windows'
+        run: ./scripts/build-combined.sh
+
+      - name: Build combined library (Windows)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: ./scripts/build-combined.sh
+
+      - name: Upload combined library
+        uses: actions/upload-artifact@v4
+        with:
+          name: speex-combined-${{ runner.os }}
+          path: dist/
+          if-no-files-found: error
