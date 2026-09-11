@@ -1,0 +1,6 @@
+[submodule "speex"]
+	path = speex
+	url = https://github.com/xiph/speex
+[submodule "speexdsp"]
+	path = speexdsp
+	url = https://github.com/xiph/speexdsp
