@@ -64,13 +64,18 @@ cc="${CC:-cc}"
 
 case "$platform" in
   windows)
-    "$cc" -shared -o dist/speex-combined.dll \
+    "$cc" -shared -static-libgcc -o dist/speex-combined.dll \
       -Wl,--out-implib,dist/libspeex-combined.dll.a \
       -Wl,--export-all-symbols -Wl,--whole-archive \
       "$speex_archive" "$speexdsp_archive" \
       -Wl,--no-whole-archive -lm
     nm -g dist/speex-combined.dll | grep -q 'speex_encoder_init'
     nm -g dist/speex-combined.dll | grep -q 'speex_resampler_init'
+    if objdump -p dist/speex-combined.dll |
+      grep -Eiq 'DLL Name: (libgcc_s|libwinpthread)' ; then
+      echo "unexpected non-system MinGW runtime dependency" >&2
+      exit 1
+    fi
     ;;
   macos)
     "$cc" -dynamiclib -o dist/libspeex-combined.dylib \
